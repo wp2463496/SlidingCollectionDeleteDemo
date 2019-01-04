@@ -23,16 +23,12 @@ class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
     private MySlidingMenu mOpenMenu;
     private MySlidingMenu mScrollingMenu;
 
-    MySlidingMenu getScrollingMenu() {
-        return mScrollingMenu;
-    }
 
-    void setScrollingMenu(MySlidingMenu scrollingMenu) {
+    public void setScrollingMenu(MySlidingMenu scrollingMenu) {
         mScrollingMenu = scrollingMenu;
-    }
-
-    void holdOpenMenu(MySlidingMenu slidingMenu) {
-        mOpenMenu = slidingMenu;
+        if(mOpenMenu != null){
+            mOpenMenu.setScrollingMenus(mScrollingMenu);
+        }
     }
 
     public void closeOpenMenu() {
@@ -55,6 +51,7 @@ class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
     @Override
     public void onBindViewHolder(final MyViewHolder holder, @SuppressLint("RecyclerView") final int position) {
         final MyBean info = mData.get(position);
+        holder.slidingMenu.setCallMessageListener(callMessage);
         holder.tvTitle.setText(info.getTitle());
         if (info.isCollection()) {
             holder.menuCollection.setText("取消收藏");
@@ -125,5 +122,28 @@ class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
             slidingMenu =  itemView.findViewById(R.id.slidingMenu);
         }
     }
+
+    MySlidingMenu.CallMessage callMessage = new MySlidingMenu.CallMessage() {
+        @Override
+        public void holdOpenMenu(MySlidingMenu slidingMenu) {
+            mOpenMenu = slidingMenu;
+        }
+
+        @Override
+        public void closeOpenMenu() {
+            if (mOpenMenu != null && mOpenMenu.isOpen()) {
+                mOpenMenu.closeMenu();
+                mOpenMenu = null;
+            }
+        }
+
+        @Override
+        public void setScrollingMenu(MySlidingMenu scrollingMenu) {
+            mScrollingMenu = scrollingMenu;
+            if(mOpenMenu != null){
+                mOpenMenu.setScrollingMenus(mScrollingMenu);
+            }
+        }
+    };
 
 }

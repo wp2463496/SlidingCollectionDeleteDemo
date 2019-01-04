@@ -1,7 +1,6 @@
 package com.forty7.slidingmenu;
 
 import android.content.Context;
-import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -20,6 +19,7 @@ public class MySlidingMenu extends HorizontalScrollView {
 
     private boolean once = true;
     private boolean isOpen;
+    private MySlidingMenu mySlidingMenu;
 
     public MySlidingMenu(final Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -47,25 +47,13 @@ public class MySlidingMenu extends HorizontalScrollView {
 
 
     /**
-     * 获取 adapter
-     */
-    private MyAdapter getAdapter() {
-        View view = this;
-        while (true) {
-            view = (View) view.getParent();
-            if (view instanceof RecyclerView) {
-                break;
-            }
-        }
-        return (MyAdapter) ((RecyclerView) view).getAdapter();
-    }
-
-    /**
      * 当打开菜单时记录此 view ，方便下次关闭
      */
     private void onOpenMenu() {
-        getAdapter().holdOpenMenu(this);
-        isOpen = true;
+        if(callMessage != null){
+            callMessage.holdOpenMenu(this);
+            isOpen = true;
+        }
     }
 
     /**
@@ -73,7 +61,9 @@ public class MySlidingMenu extends HorizontalScrollView {
      */
     private void closeOpenMenu() {
         if (!isOpen) {
-            getAdapter().closeOpenMenu();
+            if(callMessage != null){
+                callMessage.closeOpenMenu();
+            }
         }
     }
 
@@ -81,14 +71,23 @@ public class MySlidingMenu extends HorizontalScrollView {
      * 获取正在滑动的 item
      */
     public MySlidingMenu getScrollingMenu() {
-        return getAdapter().getScrollingMenu();
+        return mySlidingMenu;
+    }
+
+    /**
+     * 设置ScrollingMenu
+     */
+    public void setScrollingMenus(MySlidingMenu scrollingMenu) {
+        mySlidingMenu = scrollingMenu;
     }
 
     /**
      * 设置本 item 为正在滑动 item
      */
     public void setScrollingMenu(MySlidingMenu scrollingMenu) {
-        getAdapter().setScrollingMenu(scrollingMenu);
+        if(callMessage != null){
+            callMessage.setScrollingMenu(scrollingMenu);
+        }
     }
 
 
@@ -147,5 +146,19 @@ public class MySlidingMenu extends HorizontalScrollView {
         this.mCustomOnClickListener = listener;
     }
 
+    /**
+     * 用于通信(解耦)
+     */
+    interface CallMessage{
+        void holdOpenMenu(MySlidingMenu slidingMenu);
+        void closeOpenMenu();
+        void setScrollingMenu(MySlidingMenu scrollingMenu);
+    }
+
+    public void setCallMessageListener(CallMessage callMessage){
+        this.callMessage = callMessage;
+    }
+
+    private CallMessage callMessage;
 
 }
